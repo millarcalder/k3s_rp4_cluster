@@ -1,0 +1,20 @@
+---
+- name: Download k3s
+  get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s
+
+- name: Install k3s (server node)
+  command: "sh /tmp/k3s"
+  when: server_node
+
+- name: Install k3s (worker node)
+  command: sh /tmp/k3s
+  environment:
+    K3S_URL: "{{ k3s_url }}"
+    K3S_TOKEN: "{{ node_token }}"
+  when: not server_node
+
+- name: Install kubernetes pip package
+  pip:
+    name: kubernetes

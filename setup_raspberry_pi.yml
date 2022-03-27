@@ -1,0 +1,8 @@
+---
+- name: Install dependencies
+  hosts: webservers
+  become: yes
+  roles:
+    - basic
+    - docker
+    - kubernetes

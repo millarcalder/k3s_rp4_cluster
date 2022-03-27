@@ -1,0 +1,4 @@
+---
+- name: Reboot
+  reboot: 
+    msg: Reboot initiated by Ansible

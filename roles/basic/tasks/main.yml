@@ -1,0 +1,43 @@
+---
+- name: Set a hostname
+  notify: Reboot
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+
+- name: Install basic dependencies
+  notify: Reboot
+  ansible.builtin.apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - python3-pip
+      - linux-modules-extra-raspi
+    update_cache: yes
+
+# Configure nmap, see here for details (https://www.elastic.co/guide/en/cloud-on-k8s/master/k8s-virtual-memory.html)
+- name: Configure max_map_count
+  notify: Reboot
+  ansible.builtin.lineinfile:
+    path: /etc/sysctl.conf
+    regexp: "^vm.max_map_count="
+    line: "vm.max_map_count=262144"
+
+- name: PoE+ Hat configuration
+  notify: Reboot
+  ansible.builtin.blockinfile:
+    path: /boot/firmware/usercfg.txt
+    create: yes
+    block: |
+      dtoverlay=rpi-poe
+      dtparam=poe_fan_temp0=10000,poe_fan_temp0_hyst=1000
+      dtparam=poe_fan_temp1=55000,poe_fan_temp1_hyst=5000
+      dtparam=poe_fan_temp2=60000,poe_fan_temp2_hyst=5000
+      dtparam=poe_fan_temp3=65000,poe_fan_temp3_hyst=5000
+
+# TODO: This doesn't work! Needs to be appended onto the same line
+# - name: Enable cgroup memory
+#   notify: Reboot
+#   ansible.builtin.lineinfile:
+#     path: /boot/firmware/cmdline.txt
+#     line: "cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1"
