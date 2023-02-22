@@ -1,18 +1,20 @@
-# civilstonks-elk
+# Raspberry Pi Kubernetes Cluster
 
-This project contains ansible roles I use for setting up each Raspberry Pi 4 in my Kubernetes cluster.
+This project contains ansible roles that setup a [K3S Kubernetes cluster](https://k3s.io/) on some Raspberry Pi 4's that I have for some fun :smile:
 
-## Setup a Raspberry Pi
+Currently this is only intended to be used with a Raspberry Pi 4 running Ubuntu Server 22.10.
 
-Currently this is only intended to be used with a raspberry pi 4 since it uses a arm64 processor.
+## Setup a Raspberry Pi 4
 
-1. setup SSH on the remote machine, see [this link](https://www.ssh.com/academy/ssh/copy-id) for instructions
-2. setup a inventory file
-3. run the `setup_raspberry_pi` ansible playbook, e.g. `ansible-playbook playbook.yml -i production.yml --ask-become-pass`
+1. istall [Ubuntu Server 22.10](https://releases.ubuntu.com/22.10/)
+1. setup SSH key on the remote machine, see [this link](https://www.ssh.com/academy/ssh/copy-id) for instructions
+2. setup an inventory file in `./inventory/*` (see below for details)
+3. run the `setup_raspberry_pi` ansible playbook, e.g. `ansible-playbook setup_raspberry_pi.yml -i production.yml --ask-become-pass`
+4. Configure kubectl access to your remote cluster (https://docs.k3s.io/cluster-access)
 
 ### Inventory File
 
-When setting up a Raspberry Pi the ansible playbook will need to remotely execute commands on the machine, so you will need to setup an inventory file with some details about the machine.
+The ansible playbook will execute commands on the target remote machine, so you will need to setup an inventory file with some details about the machine.
 
 #### Master Node
 
@@ -25,5 +27,12 @@ rp01 ansible_connection=ssh ansible_host=192.168.1.1 hostname=pimaster ansible_u
 
 ```
 [webservers]
-rp01 ansible_connection=ssh ansible_host=192.168.1.1 hostname=piagent1 ansible_user=ubuntu server_node=False k3s_url=... node_token=...
+rp01 ansible_connection=ssh ansible_host=192.168.1.2 hostname=piagent1 ansible_user=ubuntu server_node=False k3s_url=... node_token=...
 ```
+
+`k3s_url` - the url for the Kubernetes cluster, e.g. http://192.168.1.1:6443/  
+`node_token` - the value to use for `node_token` is stored at `/var/lib/rancher/k3s/server/node-token` on your server node
+
+## Useful Links
+
+[K3S Quickstart](https://docs.k3s.io/quick-start)

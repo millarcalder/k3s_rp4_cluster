@@ -1,0 +1,23 @@
+---
+# https://askubuntu.com/questions/1237813/enabling-memory-cgroup-in-ubuntu-20-04
+- name: read first line from cmdline.txt
+  shell: head /boot/firmware/cmdline.txt -n 1
+  register: first_line
+
+- name: init variables
+  set_fact:
+    options: ["cgroup_enable=cpuset", "cgroup_enable=memory", "cgroup_memory=1"]
+    cmdline_contents: "{{ first_line.stdout }}"
+
+- name: build the contents of cmdline.txt
+  set_fact:
+    cmdline_contents: "{{ cmdline_contents }} {{ item }}"
+  when: "'{{ item }}' not in cmdline_contents"
+  loop: "{{ options }}"
+
+- name: write file
+  notify: Reboot
+  copy:
+    content: "{{ cmdline_contents }}"
+    dest: /boot/firmware/cmdline.txt
+    force: true
